@@ -11,8 +11,10 @@ from django.http import Http404
 
 from django.urls import reverse
 from django.views import generic
+from django.utils import timezone
 
 from .models import Question, Choice
+
 
 """
 def index(request):
@@ -45,9 +47,10 @@ class IndexView(generic.ListView):
     Get list of items for this view.
     """
     def get_queryset(self):
-    #    """Return last 5 published questions."""
+        """Return last 5 published questions, not including those
+            set to be published in the future."""
         
-        return Question.objects.order_by('-pub_date')[:5]
+        return Question.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
     
     """Just to see what the context looks like. Will be displayed in index.html"""
     #https://stackoverflow.com/questions/1999811/how-to-print-context-content-in-the-template
@@ -68,6 +71,12 @@ class DetailView(generic.DetailView):
     #DetailView uses '<app name>/<model name>_detail.html' as default template.
     #  - use template_name attribute to override
     template_name = 'polls/detail.html'
+
+    def get_queryset(self):
+        """
+        Excludes any questions that aren't published yet.
+        """
+        return Question.objects.filter(pub_date__lte=timezone.now())
 
     """Just to see what the context looks like. Will be displayed in detail.html"""
     def get_context_data(self, **kwargs):
