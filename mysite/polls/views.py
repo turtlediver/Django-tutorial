@@ -9,6 +9,8 @@ from django.template import loader
 from django.http import Http404
 
 from django.urls import reverse
+from django.views import generic
+
 from .models import Question, Choice
 
 """
@@ -17,44 +19,55 @@ def index(request):
 """
 
 """
-    index displays latest 5 poll questions in system,
-    comma separated and according to publication date
+    IndexView is a ListView, a generic view in Django.
+    ListView is a page representing a list of objects.
+     /polls/ page displays latest 5 poll questions in system,
+    comma separated and according to publication date.
 """
-def index(request):
-    latest_question_list = Question.objects.order_by('-pub_date')[:5]
-    
-    #use template in ./templates/polls
-    #template = loader.get_template('polls/index.html')
-    
-    context = {
-        'latest_question_list': latest_question_list
-    }
 
-    #return HttpResponse(template.render(context, request))
-    #render() is a shortcut for above line ^ (and loader.get_template() above)
-    return render(request, 'polls/index.html', context)
+class IndexView(generic.ListView):
 
-def detail(request, question_id):
+    #ListView uses the default template name: <app name>/<model name>_list.html
+    #   - use template_name to override
+    template_name = 'polls/index.html'
+
+    #ListView uses default context variable name 'question_list'.
+    #  - use context_object_name to override.
+    #  - we use 'latest_question_list' since that is the context variable name 
+    #       in polls/index.html template
+    #  - our context contains the 5 latest questions, returned by get_queryset
+    context_object_name = 'latest_question_list'
+
     """
-    try:
-        question = Question.objects.get(pk=question_id)
-    
-    except Question.DoesNotExist:
-        # - Here, Django catches the Http404 exception and returns the 
-        # standard error page for the application, and HTTP error code 404.
-        # - we can make an HTML template 404.html, will be used when DEBUG=False 
-        raise Http404("Question does not exist")
+    Get list of items for this view.
     """
-    #Can use get_object_or_404 as shortcut for above^.
-    # - tries to an object, raises Http404 is it DNE
-    question = get_object_or_404(Question, pk=question_id)
+    def get_queryset(self):
+        """Return last 5 published questions."""
+        return Question.objects.order_by('-pub_date')[:5]
 
-    return render(request, 'polls/detail.html', {'question': question})
+"""
+Uses Django's generic view DetailView to display a detail page
+for a particular type of object (object = Question here).
+"""
+class DetailView(generic.DetailView):
 
+    #each generic view needs to know which model it will be acting upon.
+    # - use model attribute to set this
+    model = Question
+    #DetailView uses '<app name>/<model name>_detail.html' as default template.
+    #  - use template_name attribute to override
+    template_name = 'polls/detail.html'
 
-def results(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    return render(request, 'polls/results.html', {'question':question})
+"""
+Uses Django's generic view DetailView to display a detail page
+for a particular type of object (object = Question here).
+"""
+class ResultsView(generic.DetailView):
+
+    #each generic view needs to know which model it will be acting upon.
+    # - use model attribute to set this
+    model = Question
+    template_name = 'polls/results.html'
 
 #handle submitted data and do something with it
 def vote(request, question_id):
@@ -78,4 +91,4 @@ def vote(request, question_id):
         # posted twice if user hits the Back button.
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
 
-    return HttpResponse("You're voting on question %s." %question_id)
+    
