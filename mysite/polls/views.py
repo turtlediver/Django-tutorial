@@ -24,6 +24,8 @@ def index(request):
     ListView is a page representing a list of objects.
      /polls/ page displays latest 5 poll questions in system,
     comma separated and according to publication date.
+
+    More info: https://stackoverflow.com/questions/56081862/django-tutorial-generic-views-context-object-name-latest-question-list
 """
 
 class IndexView(generic.ListView):
@@ -43,9 +45,16 @@ class IndexView(generic.ListView):
     Get list of items for this view.
     """
     def get_queryset(self):
-        """Return last 5 published questions."""
+    #    """Return last 5 published questions."""
         
         return Question.objects.order_by('-pub_date')[:5]
+    
+    """Just to see what the context looks like. Will be displayed in index.html"""
+    #https://stackoverflow.com/questions/1999811/how-to-print-context-content-in-the-template
+    def get_context_data(self, **kwargs):
+        ctx = super(IndexView, self).get_context_data(**kwargs)
+        ctx['ctx'] = ctx
+        return ctx
 
 """
 Uses Django's generic view DetailView to display a detail page
@@ -60,6 +69,12 @@ class DetailView(generic.DetailView):
     #  - use template_name attribute to override
     template_name = 'polls/detail.html'
 
+    """Just to see what the context looks like. Will be displayed in detail.html"""
+    def get_context_data(self, **kwargs):
+        ctx = super(DetailView, self).get_context_data(**kwargs)
+        ctx['ctx'] = ctx
+        return ctx
+
 """
 Uses Django's generic view DetailView to display a detail page
 for a particular type of object (object = Question here).
@@ -70,6 +85,12 @@ class ResultsView(generic.DetailView):
     # - use model attribute to set this
     model = Question
     template_name = 'polls/results.html'
+
+    """Just to see what the context looks like. Will be displayed in results.html"""
+    def get_context_data(self, **kwargs):
+        ctx = super(ResultsView, self).get_context_data(**kwargs)
+        ctx['ctx'] = ctx
+        return ctx
 
 #handle submitted data and do something with it
 def vote(request, question_id):
