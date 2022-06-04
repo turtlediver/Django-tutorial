@@ -1,3 +1,4 @@
+from multiprocessing import context
 from django.shortcuts import get_object_or_404, render
 
 # Create your views here.
@@ -37,12 +38,13 @@ class IndexView(generic.ListView):
     #       in polls/index.html template
     #  - our context contains the 5 latest questions, returned by get_queryset
     context_object_name = 'latest_question_list'
-
+    
     """
     Get list of items for this view.
     """
     def get_queryset(self):
         """Return last 5 published questions."""
+        
         return Question.objects.order_by('-pub_date')[:5]
 
 """
